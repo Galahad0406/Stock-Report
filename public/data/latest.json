@@ -1,0 +1,9 @@
+{
+  "generatedAt": null,
+  "sourceQuarter": null,
+  "sourceDatasetUrl": null,
+  "methodology": "SEC EDGAR Form 13F 분기 데이터셋의 INFOTABLE.tsv를 전량 스트리밍 파싱하여, 모든 기관 투자자가 보고한 VALUE를 CUSIP 기준으로 합산한 뒤 상위 종목을 추출합니다.",
+  "totalRowsProcessed": 0,
+  "totalUniqueCusips": 0,
+  "holdings": []
+}

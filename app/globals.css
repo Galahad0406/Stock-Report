@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+  }
+  ::selection {
+    @apply bg-brass/30;
+  }
+}
+
+@layer components {
+  .rule-line {
+    @apply border-t border-rule;
+  }
+  .ticker-badge {
+    @apply inline-flex items-center gap-1 rounded-sm border border-ledger/20 bg-ledger/5 px-2 py-0.5 font-mono text-xs tracking-tight text-ledger;
+  }
+}
