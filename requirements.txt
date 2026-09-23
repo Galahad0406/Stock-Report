@@ -1,3 +1,0 @@
-openai>=1.0.0
-edgar-tools>=2.0.0
-requests
