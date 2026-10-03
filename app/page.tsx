@@ -41,7 +41,7 @@ async function getData(): Promise {
       generatedAt: null,
       sourceQuarter: null,
       sourceDatasetUrl: null,
-      methodology: "데이터베이스 연동 대기 중",
+      methodology: "데이터 대기 중",
       totalRowsProcessed: 0,
       totalUniqueCusips: 0,
       holdings: [],
@@ -49,26 +49,7 @@ async function getData(): Promise {
   }
 }
 
-function formatUSD(n: number) {
-  if (!n) return "—";
-  const abs = Math.abs(n);
-  if (abs >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-  if (abs >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
-  return `$${n.toLocaleString()}`;
-}
-
-function formatDate(iso: string | null) {
-  if (!iso) return "업데이트 안 됨";
-  return new Date(iso).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 export default async function Home() {
   const data = await getData();
-  const hasData = data.holdings && data.holdings.length > 0;
 
   return (
