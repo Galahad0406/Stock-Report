@@ -46,7 +46,8 @@ function formatUSD(n: number) {
   return `$${n.toFixed(0)}`;
 }
 
-function formatDate(iso: string | null) {
+
+ction formatDate(iso: string | null) {
   if (!iso) return "아직 실행되지 않음";
   return new Date(iso).toLocaleDateString("ko-KR", {
     year: "numeric",
@@ -55,6 +56,7 @@ function formatDate(iso: string | null) {
   });
 }
 
+// app/page.tsx 상단부 및 카드 구조 예시 (애플 스타일 적용)
 export default async function Home() {
   const data = await getData();
   const hasData = data.holdings && data.holdings.length > 0;
