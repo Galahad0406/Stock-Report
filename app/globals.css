@@ -5,20 +5,38 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-paper text-ink font-body antialiased;
-  }
-  ::selection {
-    @apply bg-brass/30;
+    @apply bg-appleDark text-appleText font-body antialiased selection:bg-appleAccent/30 selection:text-white;
+    background-color: #000000;
   }
 }
 
 @layer components {
-  .rule-line {
-    @apply border-t border-rule;
+  /* 아이폰 스타일 Glassmorphism 카드 */
+  .apple-card {
+    @apply relative overflow-hidden rounded-2xl bg-appleCard/80 border border-white/10 backdrop-blur-xl transition-all duration-300 ease-out hover:border-white/20 hover:bg-appleCard;
   }
+
+  /* 티커 뱃지 */
   .ticker-badge {
-    @apply inline-flex items-center gap-1 rounded-sm border border-ledger/20 bg-ledger/5 px-2 py-0.5 font-mono text-xs tracking-tight text-ledger;
+    @apply inline-flex items-center gap-1 rounded-full bg-appleGray/80 px-2.5 py-0.5 font-mono text-xs font-semibold tracking-tight text-appleAccent border border-white/5;
+  }
+
+  /* 아이폰 스타일 커스텀 스크롤바 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
   }
 }
