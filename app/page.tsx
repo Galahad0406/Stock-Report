@@ -1,5 +1,6 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
+"use client";
+
+import React, { useState, useEffect } from "react";
 
 type NewsItem = {
   headline: string;
@@ -31,25 +32,21 @@ type ReportData = {
   holdings: Holding[];
 };
 
-async function getData(): Promise {
-  try {
-    const filePath = path.join(process.cwd(), "public", "data", "latest.json");
-    const raw = await readFile(filePath, "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return {
-      generatedAt: null,
-      sourceQuarter: null,
-      sourceDatasetUrl: null,
-      methodology: "데이터 대기 중",
-      totalRowsProcessed: 0,
-      totalUniqueCusips: 0,
-      holdings: [],
-    };
-  }
-}
+export default function Home() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-export default async function Home() {
-  const data = await getData();
+  useEffect(() => {
+    fetch("/data/latest.json")
+      .then((res) => res.json())
+      .then((json) => {
+        setData(json);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, []);
 
-  return (
+  if (loading) {
+    return (
