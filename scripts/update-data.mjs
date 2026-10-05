@@ -2,6 +2,8 @@ import { createWriteStream, mkdirSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import unzipper from "unzipper";
 import Parser from "rss-parser";
 
@@ -9,7 +11,6 @@ const parser = new Parser();
 const SEC_USER_AGENT =
   process.env.SEC_USER_AGENT || "sec13f-tracker research-contact@example.com";
 const OPENFIGI_API_KEY = process.env.OPENFIGI_API_KEY || "";
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || "";
 const TOP_N = Number(process.env.TOP_N || 20);
 const OUT_PATH = path.join(process.cwd(), "public", "data", "latest.json");
 
@@ -71,12 +72,8 @@ async function aggregateHoldings(zipUrl) {
   const tmpZipPath = path.join(process.cwd(), ".cache-13f.zip");
   mkdirSync(path.dirname(tmpZipPath), { recursive: true });
 
-  await new Promise((resolve, reject) => {
-    const out = createWriteStream(tmpZipPath);
-    res.body.pipe(out);
-    res.body.on("error", reject);
-    out.on("finish", resolve);
-  });
+  const out = createWriteStream(tmpZipPath);
+  await pipeline(Readable.fromWeb(res.body), out);
 
   const directory = await unzipper.Open.file(tmpZipPath);
   const infoTableEntry = directory.files.find((f) => /INFOTABLE\.tsv$/i.test(f.path));
@@ -174,7 +171,6 @@ async function mapCusipsToTickers(items) {
   return items.map((it, i) => ({ ...it, ...(results[i] || {}) }));
 }
 
-// Google News RSS 수집 함수
 async function fetchGoogleNews(query) {
   try {
     const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
