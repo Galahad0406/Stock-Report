@@ -1,50 +1,33 @@
-name: Monthly Stock Report Data Update
+name: Update Stock Data
 
 on:
-  workflow_dispatch:
-
   schedule:
-    - cron: "17 8 1 * *"
-
-permissions:
-  contents: write
+    # 매일 한국 시간 기준 아침 9시 (UTC 기준 0시) 실행
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Actions 탭에서 수동 실행 가능하도록 설정
 
 jobs:
   update-data:
-    runs-on: ubuntu-latest
+    runs-runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci || npm install
 
-      - name: Update SEC 13F and news data
-        run: npm run update-data
+      - name: Run update script
+        run: node scripts/update-data.mjs
 
-      - name: Check generated data
+      - name: Commit and Push changes
         run: |
-          test -f public/data/latest.json
-          node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('public/data/latest.json','utf8')); console.log('Generated:', d.generatedAt); console.log('Quarter:', d.sourceQuarter); console.log('Holdings:', d.holdings?.length || 0);"
-
-      - name: Commit updated data
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add public/data/latest.json
-
-          if git diff --cached --quiet; then
-            echo "No data changes detected."
-          else
-            git commit -m "Update stock report data"
-            git push
-          fi
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update stock data [skip ci]" && git push)
