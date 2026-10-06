@@ -1,82 +1,59 @@
-# SEC 13F 상위 20종목 리포트
+# SEC 13F Top 20 Stock Report
 
-SEC EDGAR의 **Form 13F 분기 데이터셋 전체**(모든 기관 투자자의 제출 원자료)를 내려받아
-종목(CUSIP) 기준으로 보유금액을 합산하고, 상위 20개 종목과 최근 관련 뉴스를 정리해
-보여주는 Next.js 사이트입니다. 데이터는 GitHub Actions로 **매달 1일 자동 갱신**되고,
-Vercel에 그대로 배포됩니다.
+SEC 공식 Form 13F 데이터와 무료 GDELT 뉴스 데이터를 이용해 기관투자자 보유 종목 Top 20을 자동 생성하는 Next.js 프로젝트입니다.
 
-## 먼저 알아둘 것 (중요, 반드시 읽어주세요)
+## 데이터 구조
 
-1. **13F는 분기 공시입니다.** SEC는 이 데이터셋을 분기마다 한 번만 갱신하며, 게시 시점도
-   분기 마감 후 45일 근처입니다. 그래서 "매달 1일 자동 실행"은 정상적으로 동작하지만,
-   같은 분기 안에서는 **보유종목 순위 자체는 그대로**일 수 있습니다 (뉴스 섹션은 매달 새로
-   갱신됩니다). 새 분기 데이터가 SEC에 올라오는 즉시 다음 달 실행에서 자동으로 반영됩니다.
-2. **뉴스 API는 무료 키가 필요합니다.** 종목별 뉴스는 [Finnhub](https://finnhub.io)
-   무료 API를 사용합니다 (가입 후 즉시 키 발급, 신용카드 불필요). 이유: NewsAPI.org의
-   무료 플랜은 이용약관상 "개발/테스트 용도"로만 허용되어 실제 배포 사이트에 쓰기
-   부적절하므로 채택하지 않았습니다. 필요하면 `scripts/update-data.mjs`의 `attachNews()`
-   함수만 다른 뉴스 API로 교체하면 됩니다.
-3. **CUSIP → 티커 매핑은 100% 정확하지 않습니다.** [OpenFIGI](https://www.openfigi.com/api)
-   무료 매핑을 사용하며, 일부 종목(특히 옵션/우선주/외국 ADR 일부)은 매핑에 실패해
-   발행사명과 CUSIP만 표시될 수 있습니다.
-4. **VALUE(보유금액) 단위**는 SEC의 13F XML 스키마 개정 시점에 따라 과거 제출분은
-   천 달러 단위, 최신 스키마는 실제 달러 단위로 섞여 있을 수 있습니다. 본 프로젝트는
-   원자료를 그대로 합산하며, 상세 스펙은 SEC의 [13F Data Sets 문서(PDF)](https://www.sec.gov/dera/data/form-13f)
-   를 참고하세요. 절대금액보다는 **상대적 순위**로 해석하는 것을 권장합니다.
-5. 이 리포트는 **투자 자문이 아닙니다.** 공개된 13F 공시를 기계적으로 집계·요약한
-   참고 자료이며, 13F 자체가 최대 45일 지연 공시라 "지금 이 순간의 보유 현황"과는 다릅니다.
+- **13F:** SEC 공식 Form 13F Data Sets에서 가장 최근에 공개된 데이터셋을 자동 선택합니다.
+- 같은 보고기간에 여러 번 제출한 기관은 해당 기관의 **가장 최근 13F-HR/13F-HR/A**만 사용합니다.
+- CUSIP별 보유 시장가치(`VALUE`)를 합산해 Top 20을 계산합니다.
+- `VALUE`는 SEC 현재 스키마 기준 달러 단위입니다. SEC 문서상 2023년 1월 3일부터 시장가치는 가장 가까운 달러로 보고됩니다.
+- **티커:** OpenFIGI 무료 API를 사용합니다. 매핑되지 않는 종목은 CUSIP/발행사명으로 표시됩니다.
+- **뉴스:** GDELT DOC 2.0 API를 사용하며 API 키가 필요 없습니다. 각 종목의 최근 31일 뉴스 최대 5건을 저장합니다.
 
-## 프로젝트 구조
+SEC의 13F 데이터셋은 분기별로 업데이트되며, 현재 공개 데이터셋은 SEC가 직접 제공합니다.
 
-```
-app/                     Next.js 리포트 페이지 (App Router)
-scripts/update-data.mjs  SEC 13F 다운로드 → 집계 → 티커매핑 → 뉴스수집 → JSON 저장
-public/data/latest.json  생성된 리포트 데이터 (페이지가 이 파일을 읽음)
-.github/workflows/       매달 1일 자동 실행 + 자동 커밋 워크플로
-```
+## 자동 업데이트
 
-## 로컬에서 데이터 한 번 생성해보기
+`.github/workflows/update-data.yml`이 매월 1일 미국 Pacific Time 기준으로 실행됩니다.
+
+1. GitHub Actions가 최신 SEC 13F 데이터셋을 찾습니다.
+2. 데이터셋을 다운로드합니다.
+3. 최신 보고기간의 기관별 최신 13F를 선택합니다.
+4. CUSIP 기준 Top 20을 계산합니다.
+5. OpenFIGI로 티커를 매핑합니다.
+6. GDELT에서 최근 뉴스를 가져옵니다.
+7. `public/data/latest.json`을 갱신합니다.
+8. 변경사항을 GitHub에 자동 commit/push합니다.
+9. GitHub 저장소와 연결된 Vercel은 새 commit을 감지해 사이트를 재배포합니다.
+
+### SEC User-Agent
+
+GitHub 저장소의 **Settings → Secrets and variables → Actions → New repository secret**에서 다음 Secret을 추가하는 것을 권장합니다.
+
+- Name: `SEC_USER_AGENT`
+- Value: `Stock-Report/1.0 (your-email@example.com)`
+
+비어 있어도 기본 User-Agent가 사용되지만, SEC 자동 접근에는 연락 가능한 식별 정보를 넣는 것이 좋습니다.
+
+## 수동 실행
+
+GitHub 저장소의 **Actions → Monthly Stock Report Data Update → Run workflow**로 즉시 실행할 수 있습니다.
+
+로컬에서는:
 
 ```bash
 npm install
-cp .env.example .env.local   # 값 채우기 (FINNHUB_API_KEY 등)
-npm run update-data          # public/data/latest.json 생성 (몇 분 소요될 수 있음)
-npm run dev                  # http://localhost:3000 에서 확인
+npm run update-data
+npm run dev
 ```
 
-## GitHub에 올리기
+생성 파일:
 
-1. 새 GitHub 저장소를 만들고 이 폴더 전체를 push 합니다.
+```text
+public/data/latest.json
+```
 
-   ```bash
-   git init
-   git add .
-   git commit -m "init: sec 13f top20 tracker"
-   git branch -M main
-   git remote add origin https://github.com/<your-id>/<your-repo>.git
-   git push -u origin main
-   ```
+## 주의
 
-2. 저장소 **Settings → Secrets and variables → Actions** 에서 아래를 등록합니다.
-   - `Secrets`: `FINNHUB_API_KEY`, (선택) `OPENFIGI_API_KEY`
-   - `Variables`: `SEC_USER_AGENT` (예: `sec13f-top20-tracker your-email@example.com`)
-
-3. **Actions** 탭에서 `Monthly 13F Top 20 update` 워크플로를 `Run workflow` 버튼으로
-   한 번 수동 실행해 `public/data/latest.json`을 채워둡니다. 이후에는 매달 1일 자동 실행됩니다.
-
-## Vercel 배포
-
-1. [vercel.com](https://vercel.com) → **Add New Project** → 방금 만든 GitHub 저장소 선택.
-2. 프레임워크가 Next.js로 자동 인식됩니다. 별도 환경변수 설정 없이 **Deploy** 클릭만 하면 됩니다
-   (사이트는 저장소에 커밋된 `public/data/latest.json`을 읽을 뿐, 배포 환경에서 직접
-   SEC를 스크래핑하지 않습니다 — 무거운 수집 작업은 GitHub Actions가 전담합니다).
-3. 이후 GitHub Actions가 매달 `public/data/latest.json`을 갱신해 커밋 → 자동으로
-   Vercel이 재배포합니다.
-
-## 커스터마이징 포인트
-
-- 상위 종목 개수: 워크플로 파일의 `TOP_N` 값을 변경 (기본 20).
-- 뉴스 기간/개수: `scripts/update-data.mjs`의 `attachNews()`에서 `21 * 24 * 60 * 60 * 1000`
-  (3주) 과 `.slice(0, 5)` (종목당 5건) 수정.
-- 실행 주기: `.github/workflows/update-data.yml`의 cron 표현식 (`0 0 1 * *` = 매달 1일 UTC 0시).
-- 디자인: `tailwind.config.ts`의 색상 토큰, `app/page.tsx`의 레이아웃.
+13F는 실시간 포트폴리오가 아닙니다. SEC 규정상 분기 말 보유현황을 사후 공시하므로, 월간 자동 실행은 새 13F 데이터가 공개되었을 때 이를 반영하기 위한 것입니다. 뉴스는 업데이트가 실행되는 시점의 최근 뉴스로 교체됩니다.
