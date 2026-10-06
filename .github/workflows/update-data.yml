@@ -4,7 +4,7 @@ on:
   schedule:
     # 매일 한국 시간 기준 아침 9시 (UTC 기준 0시) 실행
     - cron: '0 0 * * *'
-  workflow_dispatch: # Actions 탭에서 수동 실행 버튼 생성
+  workflow_dispatch: # Actions 탭에서 수동 실행 지원
 
 jobs:
   update-data:
@@ -17,10 +17,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22' # 지원 종료된 20에서 권장 LTS 버전인 22로 변경
+          node-version: '22'
 
       - name: Install dependencies
         run: npm install
+
+      - name: Ensure data directory exists
+        run: mkdir -p public/data
 
       - name: Run update script
         run: node scripts/update-data.mjs
