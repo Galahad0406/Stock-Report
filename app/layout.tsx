@@ -2,17 +2,26 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "13F Institutional Holdings Top 20",
-  description: "SEC EDGAR Form 13F 기관 투자자 보유 종목 Top 20 및 관련 뉴스 보고서",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "13F Tracker" },
+  title: "Stock Report | SEC 13F Top 10",
+  description: "SEC 13F 보유 상위 종목과 실시간 뉴스 기반 투자 설명 보고서",
+  applicationName: "Stock Report",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Stock Report",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#f5f5f7",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="ko"><body>{children}</body></html>;
+  return (
+    <html lang="ko">
+      <body>{children}</body>
+    </html>
+  );
 }
