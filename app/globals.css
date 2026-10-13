@@ -7,36 +7,47 @@
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
   }
+
   body {
-    @apply bg-appleDark text-appleText font-body antialiased selection:bg-appleAccent/30 selection:text-white;
-    background-color: #000000;
+    @apply font-body antialiased text-[#1d1d1f] bg-[#f5f5f7];
+    background-image: radial-gradient(circle at top left, rgba(10,132,255,0.08), transparent 30%),
+      radial-gradient(circle at top right, rgba(52,211,153,0.08), transparent 20%),
+      linear-gradient(180deg, #f5f5f7 0%, #f9fafb 100%);
+  }
+
+  * {
+    box-sizing: border-box;
   }
 }
 
 @layer components {
-  /* 아이폰 스타일 Glassmorphism 카드 */
-  .apple-card {
-    @apply relative overflow-hidden rounded-2xl bg-appleCard/80 border border-white/10 backdrop-blur-xl transition-all duration-300 ease-out hover:border-white/20 hover:bg-appleCard;
+  .apple-panel {
+    @apply rounded-[28px] border border-black/5 bg-white/80 shadow-[0_18px_55px_rgba(15,23,42,0.06)] backdrop-blur-xl;
   }
 
-  /* 티커 뱃지 */
-  .ticker-badge {
-    @apply inline-flex items-center gap-1 rounded-full bg-appleGray/80 px-2.5 py-0.5 font-mono text-xs font-semibold tracking-tight text-appleAccent border border-white/5;
+  .apple-badge {
+    @apply inline-flex items-center gap-2 rounded-full border border-[#dfe3eb] bg-white/80 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#4b5563];
   }
 
-  /* 아이폰 스타일 커스텀 스크롤바 */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  .ticker-pill {
+    @apply inline-flex items-center justify-center rounded-full bg-[#0a84ff]/10 px-2.5 py-1 text-[11px] font-semibold text-[#0a84ff];
   }
-  ::-webkit-scrollbar-track {
+
+  .soft-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .soft-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+
+  .soft-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
     border-radius: 9999px;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
+
+  .soft-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.6);
   }
 }
