@@ -1,40 +1,52 @@
-name: Update SEC 13F Data
+name: Monthly Stock Report Data Update
 
 on:
   schedule:
-    - cron: "30 21 * * 1-5"
+    - cron: "0 8 1 * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: update-sec-13f-data
+  group: stock-report-update
   cancel-in-progress: false
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+
+    env:
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'Stock-Report/1.0 (contact@example.com)' }}
+      OPENFIGI_API_KEY: ${{ secrets.OPENFIGI_API_KEY || '' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run 13F Data Update Script
+      - name: Run data update
         run: npm run update-data
 
-      - name: Commit and push changes if data updated
+      - name: Commit and push if data changed
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add public/data/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: automated SEC 13F data update [skip ci]" && git push)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add public/data || true
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: automated SEC 13F data update"
+          git push
